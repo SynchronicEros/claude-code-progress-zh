@@ -1,0 +1,14 @@
+{
+  "name": "progress",
+  "version": "0.9.1",
+  "description": "任務進度條：輸入框上方列出本機各 session 正在執行的任務、進度百分比與預估剩餘時間；進度由 Mod 定期以分身估計完成幾成",
+  "author": {
+    "name": "SynchronicEros"
+  },
+  "keywords": [
+    "progress",
+    "sessions",
+    "function-hooks",
+    "ui"
+  ]
+}

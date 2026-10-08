@@ -1,0 +1,16 @@
+{
+  "name": "claude-code-progress-zh",
+  "owner": {
+    "name": "SynchronicEros"
+  },
+  "metadata": {
+    "description": "任務進度條：輸入框上方列出本機各 session 正在執行的任務、進度與預估剩餘時間"
+  },
+  "plugins": [
+    {
+      "name": "progress",
+      "source": "./",
+      "description": "任務進度條：輸入框上方列出本機各 session 正在執行的任務、進度與預估剩餘時間"
+    }
+  ]
+}
