@@ -62,8 +62,10 @@ let inFlight = 0
 
 async function resolveDir($: EngineInterface): Promise<string> {
   if (dir !== '') return dir
-  const home = (await $.env.get('HOME')) ?? ''
-  dir = `${home}/.claude/claude-mods-data/progress`
+  // Follow the config dir: a session run under another CLAUDE_CONFIG_DIR
+  // (a test setup, a second account) keeps its rows out of this band.
+  const config = (await $.env.get('CLAUDE_CONFIG_DIR')) || `${(await $.env.get('HOME')) ?? ''}/.claude`
+  dir = `${config.replace(/[\\/]+$/, '')}/claude-mods-data/progress`
   return dir
 }
 
@@ -260,8 +262,9 @@ export const register: Register = on => {
 
   on('tool.call', { tool: 'TaskUpdate' }, async ($, e, next) => {
     if (e.agentId !== undefined) return next(e)
-    if (self?.state === 'running' && e.status === 'completed' && !completedTasks.has(e.taskId)) {
-      completedTasks.add(e.taskId)
+    const taskId = typeof e.taskId === 'string' ? e.taskId : undefined
+    if (self?.state === 'running' && e.status === 'completed' && taskId !== undefined && !completedTasks.has(taskId)) {
+      completedTasks.add(taskId)
       self = { ...self, todoDone: (self.todoDone ?? 0) + 1 }
     } else if (self?.state === 'running' && e.status === 'deleted') {
       self = { ...self, todoTotal: Math.max(0, (self.todoTotal ?? 1) - 1) }
