@@ -145,13 +145,15 @@ export function todoCounts(todos: unknown): { done: number; total: number } | un
   return { done, total: todos.length }
 }
 
-// Rows the band shows: running tasks still writing, and errored ones.
+// Rows the band shows: running and errored tasks whose session is still
+// writing. An errored session keeps its heartbeat until its next task, so a
+// session that has exited (a one-shot headless run, a closed window) drops out.
 export function shownRecords(records: readonly SessionRecord[], now: number): SessionRecord[] {
-  return visible(records, now).filter(r => (r.state === 'running' && !isLost(r, now)) || r.state === 'error')
+  return visible(records, now).filter(r => (r.state === 'running' || r.state === 'error') && !isLost(r, now))
 }
 
 export function isLost(r: SessionRecord, now: number): boolean {
-  return r.state === 'running' && now - r.updatedAt > STALE_MS
+  return (r.state === 'running' || r.state === 'error') && now - r.updatedAt > STALE_MS
 }
 
 export function visible(records: readonly SessionRecord[], now: number): SessionRecord[] {

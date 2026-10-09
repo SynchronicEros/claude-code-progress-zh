@@ -86,6 +86,9 @@ async function refresh($: EngineInterface): Promise<void> {
     if (lastColumns !== undefined && self.columns !== lastColumns) self = { ...self, columns: lastColumns }
     await save($, true)
     if (needsEstimate(self, now)) void estimate($)
+  } else if (self?.state === 'error') {
+    // Keep the red row alive only while this session is.
+    await save($, true)
   }
   const folder = await resolveDir($)
   const found: SessionRecord[] = []

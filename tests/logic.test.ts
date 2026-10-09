@@ -51,8 +51,8 @@ test('forgotten and stale records', async () => {
   // Four missed 5-second heartbeats: lost; two: still shown.
   expect(isLost({ ...base, updatedAt: now - 25_000 }, now)).toBe(true)
   expect(isLost({ ...base, updatedAt: now - 10_000 }, now)).toBe(false)
-  // A killed session's record vanishes from the rows; an error row does not age out this way.
-  expect(shownRecords([{ ...base, updatedAt: now - 25_000 }, { ...base, id: 'e', state: 'error', updatedAt: now - 25_000 }], now).map(r => r.id).join(',')).toBe('e')
+  // A killed session's record vanishes from the rows, errored or not; a live error row stays.
+  expect(shownRecords([{ ...base, updatedAt: now - 25_000 }, { ...base, id: 'e', state: 'error', updatedAt: now - 25_000 }, { ...base, id: 'f', state: 'error', updatedAt: now - 10_000 }], now).map(r => r.id).join(',')).toBe('f')
 })
 
 test('records parse defensively', async () => {
@@ -125,12 +125,13 @@ test('waiting and error rows: tone, label, and which records show', async () => 
   const list: SessionRecord[] = [
     { ...base, id: 'w', project: 'p', task: '等你選', estPercent: 40, waiting: 'decision', updatedAt: now },
     { ...base, id: 'q', project: 'p', task: '等權限', estPercent: 40, waiting: 'permission', updatedAt: now },
-    { ...base, id: 'e', project: 'p', task: '壞了', state: 'error', error: 'api', estPercent: 70, updatedAt: now - 2 * 60 * 60_000 },
+    { ...base, id: 'e', project: 'p', task: '壞了', state: 'error', error: 'api', estPercent: 70, updatedAt: now },
+    { ...base, id: 'x', project: 'p', task: '已關閉', state: 'error', error: 'api', updatedAt: now - 2 * 60 * 60_000 },
     { ...base, id: 's', project: 'p', task: '被中斷', state: 'stopped', updatedAt: now },
     { ...base, id: 'l', project: 'p', task: '失聯', updatedAt: now - 10 * 60_000 },
   ]
   const shown = shownRecords(list, now)
-  // Error rows stay (even hours later); interrupted and lost ones do not.
+  // Error rows stay while their session writes; interrupted, lost and exited ones do not.
   expect(shown.map(r => r.id).join(',')).toBe('w,q,e')
   const { rows } = layoutRows(shown, 'w', 80, now)
   expect(rows[0]?.tone).toBe('waiting')

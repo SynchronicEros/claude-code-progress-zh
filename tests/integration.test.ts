@@ -480,7 +480,9 @@ test('waiting and error records from other sessions draw yellow and red labels',
   const put = (r: Record<string, unknown>) => store.vfs.set(`${DIR}/${String(r.id)}.json`, JSON.stringify(r))
   put({ id: 'w', project: 'p', task: '等你選', state: 'running', startedAt: now - 60_000, updatedAt: now, steps: 2, estPercent: 40, waiting: 'decision' })
   put({ id: 'q', project: 'p', task: '等權限', state: 'running', startedAt: now - 60_000, updatedAt: now, steps: 2, waiting: 'permission' })
-  put({ id: 'e', project: 'p', task: '壞了', state: 'error', error: 'api', startedAt: now - 3 * 60 * 60_000, updatedAt: now - 2 * 60 * 60_000, steps: 2 })
+  put({ id: 'e', project: 'p', task: '壞了', state: 'error', error: 'api', startedAt: now - 3 * 60 * 60_000, updatedAt: now, steps: 2 })
+  // An errored session that has exited (no heartbeat): not drawn.
+  put({ id: 'g', project: 'p', task: '已關閉', state: 'error', error: 'api', startedAt: now - 3 * 60 * 60_000, updatedAt: now - 60_000, steps: 0 })
   await $.session.start({ cwd: '/tmp/adv/專案甲', surface: 'desktop', isInteractive: true })
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ plugin: 'progress', surface, component: 'AbovePrompt', props: PROPS(90) })
